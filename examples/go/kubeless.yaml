@@ -1,0 +1,6 @@
+- name: "go-github"
+  version: "1.0.0"
+  runtime: go1.10
+  file: github.go
+  handler: github.Handler
+  schedule: "*/10 * * * * *"

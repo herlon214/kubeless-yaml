@@ -1,0 +1,6 @@
+- name: "nodejs-github"
+  version: "1.0.0"
+  runtime: nodejs8
+  file: index.js
+  handler: index.handler
+  dependencies: package.json
