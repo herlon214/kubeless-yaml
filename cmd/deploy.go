@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -17,11 +18,14 @@ var deployedFunctions []*DeployedFunction
 
 // Config is the YAML file structure
 type Config struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
-	Runtime string `yaml:"runtime"`
-	File    string `yaml:"file"`
-	Handler string `yaml:"handler"`
+	Name         string  `yaml:"name"`
+	Version      string  `yaml:"version"`
+	Runtime      string  `yaml:"runtime"`
+	File         string  `yaml:"file"`
+	Handler      string  `yaml:"handler"`
+	Dependencies *string `yaml:"dependencies"`
+	Schedule     *string `yaml:"schedule"`
+	CPURequest   *string `yaml:"cpu"`
 }
 
 // DeployedFunction contains a simple yaml structure for deployed function
@@ -71,6 +75,11 @@ func isDirectory(path string) bool {
 }
 
 func deployDirRecursive(dir string) {
+	// Skip vendors dirs
+	if strings.Contains(dir, "node_modules") || strings.Contains(dir, "vendor") {
+		return
+	}
+
 	files, err := ioutil.ReadDir(dir)
 
 	if err != nil {
@@ -115,7 +124,24 @@ func deployDir(dir string) {
 		params = append(params, "--runtime", config.Runtime)
 		params = append(params, "--label", fmt.Sprintf("kubeless-yaml=%s-%s", config.Name, config.Version))
 
-		// Pre-flight
+		// Check if there's cpu request
+		if config.CPURequest != nil {
+			params = append(params, "--cpu", *config.CPURequest)
+		} else {
+			params = append(params, "--cpu", "0")
+		}
+
+		// Check if there's dependencies
+		if config.Dependencies != nil {
+			params = append(params, "--dependencies", fmt.Sprintf("%s/%s", dir, *config.Dependencies))
+		}
+
+		// Check if there's a schedule
+		if config.Schedule != nil {
+			params = append(params, "--schedule", *config.Schedule)
+		}
+
+		// Preflight
 		var shouldBeDeployed *DeployedFunction
 		params = append(params, "--dryrun")
 		out, err := exec.Command("kubeless", params...).CombinedOutput()
