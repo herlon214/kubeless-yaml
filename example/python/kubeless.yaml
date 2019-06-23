@@ -1,0 +1,11 @@
+- name: "python-hello"
+  version: "1.0.0"
+  runtime: python2.7
+  file: test.py
+  handler: test.hello
+
+- name: "python-world"
+  version: "1.0.0"
+  runtime: python2.7
+  file: test.py
+  handler: test.world

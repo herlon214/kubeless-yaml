@@ -1,0 +1,5 @@
+- name: "python-hello3"
+  version: "1.0.0"
+  runtime: python2.7
+  file: test.py
+  handler: test.hello
